@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f5f7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="训练计划">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icons/icon-180.png">
+<link rel="icon" type="image/png" href="./icons/icon-192.png">
+
+<title>训练计划生成器 · PRO SPLIT ENGINE</title>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f4f5f7;
+  --paper:#ffffff;
+  --ink:#15181b;
+  --ink-2:#4c545c;
+  --ink-3:#6e757d;
+  --ink-4:#838b92;
+  --hair:rgba(18,24,30,.11);
+  --hair-soft:rgba(18,24,30,.065);
+  --glass:rgba(255,255,255,.74);
+  --glass-2:rgba(255,255,255,.92);
+  --steel:#3f6f92;
+  --steel-2:#2a5578;
+  --steel-soft:#eaf1f6;
+  --steel-glow:rgba(80,130,170,.22);
+  --shadow-s:0 1px 2px rgba(18,30,45,.05);
+  --shadow-m:0 18px 50px -22px rgba(18,30,45,.20), 0 2px 8px rgba(18,30,45,.045);
+  --shadow-l:0 44px 90px -50px rgba(18,30,45,.28), 0 2px 10px rgba(18,30,45,.05);
+  --r-lg:26px;
+  --r-md:16px;
+  --r-sm:12px;
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font);
+  font-size:15.5px; line-height:1.72;
+  letter-spacing:-.004em;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  overflow-x:hidden;
+  min-height:100vh;
+}
+::selection{background:rgba(63,111,146,.16);color:#0b1014}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:#eceef1}
+::-webkit-scrollbar-thumb{background:rgba(18,24,30,.16);border-radius:10px;border:3px solid #eceef1}
+::-webkit-scrollbar-thumb:hover{background:rgba(18,24,30,.28)}
+
+/* ---------- 环境光 / 纸感颗粒 ---------- */
+.ambient{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.ambient span{position:absolute;border-radius:50%;filter:blur(90px);will-change:transform}
+.ambient .a1{width:74vw;height:74vw;left:-22vw;top:-36vw;background:radial-gradient(circle at 50% 50%,rgba(122,164,204,.30),rgba(122,164,204,0) 64%)}
+.ambient .a2{width:56vw;height:56vw;right:-16vw;top:4vh;background:radial-gradient(circle at 50% 50%,rgba(158,188,216,.22),rgba(158,188,216,0) 66%)}
+.ambient .a3{width:86vw;height:52vw;left:4vw;bottom:-28vw;background:radial-gradient(circle at 50% 50%,rgba(140,168,196,.18),rgba(140,168,196,0) 68%)}
+.grain{
+  position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.028;
+  filter:grayscale(1) contrast(1.15);
+  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:180px 180px;
+  mix-blend-mode:multiply;
+}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0) 26%)}
+
+.wrap{position:relative;z-index:2;max-width:1080px;margin:0 auto;padding:0 32px 120px}
+
+/* ---------- 页头 ---------- */
+.masthead{padding:96px 0 0}
+.eyebrow{
+  display:block;font-size:10.5px;font-weight:600;letter-spacing:.30em;text-transform:uppercase;
+  color:var(--ink-4);
+}
+.masthead .topline{display:flex;justify-content:space-between;align-items:baseline;gap:20px;
+  padding-bottom:26px;border-bottom:1px solid var(--hair-soft)}
+.masthead h1{
+  margin:52px 0 0;font-weight:250;letter-spacing:-.028em;line-height:1.04;
+  font-size:clamp(40px,7.4vw,84px);
+  color:#0f1316;
+}
+.masthead h1 em{font-style:normal;font-weight:200;
+  background:linear-gradient(180deg,#5d7c93,#aab4bd);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.lede{
+  margin:26px 0 0;max-width:540px;font-size:16px;line-height:1.78;color:var(--ink-2);
+  letter-spacing:0;
+}
+.lede b{color:var(--ink);font-weight:600}
+.meta-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:70px 0 0;
+  border-top:1px solid var(--hair-soft)}
+.meta-strip div{padding:20px 22px 22px;border-left:1px solid var(--hair-soft)}
+.meta-strip div:first-child{border-left:0;padding-left:0}
+.meta-strip b{display:block;font-size:12px;font-weight:600;letter-spacing:.14em;color:var(--steel);font-variant-numeric:tabular-nums}
+.meta-strip span{display:block;margin-top:6px;font-size:13.5px;color:var(--ink-3);letter-spacing:.02em}
+
+/* ---------- 玻璃面板 ---------- */
+.panel,.card{
+  position:relative;
+  background:linear-gradient(180deg,rgba(255,255,255,.88),rgba(255,255,255,.70));
+  -webkit-backdrop-filter:blur(30px) saturate(150%);
+  backdrop-filter:blur(30px) saturate(150%);
+  border:1px solid rgba(255,255,255,.9);
+  outline:1px solid var(--hair-soft);
+  outline-offset:-1px;
+  border-radius:var(--r-lg);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.95),
+    var(--shadow-l);
+}
+.panel::before,.card::before{
+  content:"";position:absolute;left:8%;right:8%;top:0;height:1px;border-radius:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),transparent);
+  pointer-events:none;
+}
+.panel{margin-top:34px;padding:44px 44px 40px}
+.card{margin-top:20px;padding:38px 40px 34px}
+
+.panel-head{margin-bottom:34px}
+.panel-head .idx{
+  display:block;font-size:11px;letter-spacing:.24em;color:var(--ink-4);font-variant-numeric:tabular-nums;
+}
+h2{
+  margin:10px 0 0;font-size:20px;font-weight:400;letter-spacing:-.02em;color:var(--ink);
+}
+.panel-head .hint{margin-top:10px}
+.hint{font-size:13px;line-height:1.72;color:var(--ink-3);margin:0;letter-spacing:.005em}
+
+/* ---------- 表单 ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:26px 22px}
+.grid.two{margin-top:30px}
+.field{display:flex;flex-direction:column;gap:10px;min-width:0}
+.field > label,.field > .flabel{
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);font-weight:600;
+}
+input[type=number],select{
+  width:100%;font-family:inherit;font-size:15.5px;color:var(--ink);letter-spacing:0;
+  background:rgba(255,255,255,.86);
+  border:1px solid var(--hair);
+  border-radius:var(--r-sm);
+  padding:13px 14px;
+  outline:none;
+  box-shadow:inset 0 1px 2px rgba(18,30,45,.04);
+  transition:border-color .35s var(--ease),background .35s var(--ease),box-shadow .35s var(--ease);
+  -webkit-appearance:none;appearance:none;
+}
+input[type=number]:hover,select:hover{background:#fff;border-color:rgba(18,24,30,.20)}
+input[type=number]:focus,select:focus{
+  border-color:rgba(63,111,146,.55);
+  background:#fff;
+  box-shadow:0 0 0 4px rgba(63,111,146,.10), inset 0 1px 2px rgba(18,30,45,.03);
+}
+select{
+  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='rgba(18,24,30,0.45)' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;background-size:12px 8px;
+  padding-right:38px;
+}
+select option{background:#fff;color:var(--ink)}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+
+/* 分段控件 */
+.seg{display:flex;gap:4px;padding:4px;border-radius:calc(var(--r-sm) + 4px);
+  background:rgba(18,24,30,.045);border:1px solid var(--hair-soft)}
+.seg label{position:relative;flex:1;min-width:0;cursor:pointer}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{
+  display:block;text-align:center;padding:9px 4px;border-radius:var(--r-sm);
+  font-size:13.5px;color:var(--ink-2);letter-spacing:.04em;
+  transition:color .3s var(--ease),background .3s var(--ease),box-shadow .3s var(--ease);
+  white-space:nowrap;
+}
+.seg label:hover span{color:var(--ink)}
+.seg input:checked + span{
+  color:var(--ink);font-weight:600;
+  background:#fff;
+  box-shadow:0 1px 2px rgba(18,30,45,.10),0 4px 12px -6px rgba(18,30,45,.14);
+}
+
+/* 多选胶囊 */
+.chk{display:flex;gap:9px;flex-wrap:wrap}
+.chk label{position:relative;cursor:pointer}
+.chk input{position:absolute;opacity:0;pointer-events:none}
+.chk span{
+  display:block;padding:9px 18px;border-radius:999px;font-size:13.5px;color:var(--ink-2);
+  border:1px solid var(--hair);background:rgba(255,255,255,.7);
+  letter-spacing:.02em;
+  transition:all .3s var(--ease);
+}
+.chk label:hover span{color:var(--ink);border-color:rgba(18,24,30,.22);background:#fff}
+.chk input:checked + span{
+  color:var(--steel-2);border-color:rgba(63,111,146,.42);font-weight:600;
+  background:var(--steel-soft);
+  box-shadow:0 0 0 3px rgba(63,111,146,.08);
+}
+
+/* 按钮 */
+.actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:38px;
+  padding-top:30px;border-top:1px solid var(--hair-soft)}
+button{
+  font-family:inherit;font-size:14.5px;font-weight:600;letter-spacing:.02em;
+  padding:14px 34px;border-radius:999px;border:1px solid transparent;cursor:pointer;
+  transition:transform .3s var(--ease),filter .3s var(--ease),border-color .3s var(--ease),
+             background .3s var(--ease),color .3s var(--ease),box-shadow .3s var(--ease);
+  -webkit-tap-highlight-color:transparent;
+}
+.btn-main{
+  color:#fff;
+  background:linear-gradient(180deg,#2b3138,#14181c);
+  border-color:rgba(255,255,255,.10);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 14px 30px -14px rgba(18,30,45,.55);
+}
+.btn-main:hover{transform:translateY(-1px);filter:brightness(1.08);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 20px 38px -16px rgba(18,30,45,.6)}
+.btn-main:active{transform:translateY(0) scale(.99)}
+.btn-ghost{
+  color:var(--ink-2);background:rgba(255,255,255,.8);border-color:var(--hair);
+  box-shadow:var(--shadow-s);
+}
+.btn-ghost:hover{color:var(--ink);background:#fff;border-color:rgba(18,24,30,.22);transform:translateY(-1px);
+  box-shadow:0 8px 20px -10px rgba(18,30,45,.22)}
+.btn-ghost:active{transform:translateY(0) scale(.99)}
+
+/* ---------- 结果区 ---------- */
+#result{margin-top:0}
+#result > .card,#result > .daycard{animation:rise .8s var(--ease) both}
+#result > .card:nth-child(2){animation-delay:.04s}
+#result > .card:nth-child(3){animation-delay:.08s}
+#result > .daycard:nth-of-type(1){animation-delay:.12s}
+#result > .daycard:nth-of-type(2){animation-delay:.18s}
+#result > .daycard:nth-of-type(3){animation-delay:.24s}
+#result > .daycard:nth-of-type(4){animation-delay:.30s}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+
+/* 数据指标：几何分割 */
+.hero{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin-top:26px;
+  border-top:1px solid var(--hair-soft)}
+.stat{padding:22px 20px 6px;border-left:1px solid var(--hair-soft);min-width:0}
+.stat:first-child{border-left:0;padding-left:0}
+.stat .k{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-4);font-weight:600}
+.stat .v{margin-top:8px;font-size:clamp(22px,2.6vw,32px);font-weight:300;letter-spacing:-.03em;
+  color:var(--ink);line-height:1.15;font-variant-numeric:tabular-nums}
+.stat .v small{font-size:11px;font-weight:500;letter-spacing:.06em;color:var(--ink-3);margin-left:4px}
+.stat.accent .v{
+  background:linear-gradient(180deg,#16202a,#41708f);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+
+/* 日程 */
+.sched{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:22px}
+.sched .d{
+  position:relative;border:1px solid var(--hair-soft);border-radius:var(--r-md);
+  padding:18px 8px 16px;text-align:center;background:rgba(255,255,255,.62);
+  transition:border-color .4s var(--ease),background .4s var(--ease),transform .4s var(--ease);
+}
+.sched .d .w{font-size:10px;letter-spacing:.18em;color:var(--ink-4);text-transform:uppercase;font-weight:600}
+.sched .d .s{margin-top:8px;font-size:12.5px;font-weight:500;letter-spacing:.02em;color:var(--ink-3);line-height:1.35}
+.sched .d .s.rest{color:var(--ink-4);font-weight:400}
+.sched .d.on{
+  border-color:rgba(63,111,146,.34);
+  background:linear-gradient(180deg,#f7fbfd,#e9f1f6);
+  box-shadow:inset 0 1px 0 #fff,0 10px 24px -18px rgba(63,111,146,.5);
+}
+.sched .d.on .s{color:var(--steel-2);font-weight:600}
+.sched .d.on .w{color:var(--steel)}
+
+/* 训练日卡片 */
+.daycard{
+  position:relative;overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,255,255,.90),rgba(255,255,255,.72));
+  -webkit-backdrop-filter:blur(30px) saturate(150%);
+  backdrop-filter:blur(30px) saturate(150%);
+  border:1px solid rgba(255,255,255,.92);
+  outline:1px solid var(--hair-soft);
+  outline-offset:-1px;
+  border-radius:var(--r-lg);
+  padding:36px 40px 30px;margin-top:18px;
+  box-shadow:inset 0 1px 0 #fff,var(--shadow-l);
+  counter-increment:day;
+  transition:outline-color .45s var(--ease),transform .45s var(--ease),box-shadow .45s var(--ease);
+}
+#result{counter-reset:day}
+.daycard:hover{transform:translateY(-2px);
+  outline-color:rgba(18,24,30,.12);
+  box-shadow:inset 0 1px 0 #fff,0 50px 100px -55px rgba(18,30,45,.34)}
+.daycard::after{
+  content:counter(day,decimal-leading-zero);
+  position:absolute;right:34px;top:12px;font-size:88px;font-weight:200;
+  letter-spacing:-.05em;line-height:1;color:rgba(18,30,45,.045);pointer-events:none;
+  font-variant-numeric:tabular-nums;
+}
+.dayhead{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap;
+  position:relative;z-index:1}
+.dayhead .d{font-size:10.5px;letter-spacing:.24em;color:var(--steel);text-transform:uppercase;font-weight:600}
+.dayhead .t{margin-top:8px;font-size:23px;font-weight:400;letter-spacing:-.025em;color:var(--ink)}
+.dayhead .m{font-size:12px;letter-spacing:.03em;color:var(--ink-3);text-align:right;line-height:1.9;padding-top:6px}
+
+.warm{
+  margin:22px 0 4px;padding:12px 16px;border-radius:var(--r-sm);
+  border:1px solid var(--hair-soft);border-left:2px solid rgba(63,111,146,.45);
+  background:rgba(63,111,146,.045);
+  font-size:12.5px;line-height:1.75;color:var(--ink-2);letter-spacing:.005em;
+  position:relative;z-index:1;
+}
+
+/* 表格 */
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:14px;
+  position:relative;z-index:1;
+  -ms-overflow-style:none;scrollbar-width:thin}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th{
+  text-align:left;padding:0 14px 14px;font-size:10px;font-weight:600;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--ink-4);
+  border-bottom:1px solid var(--hair);white-space:nowrap;
+}
+th:first-child,td:first-child{padding-left:0}
+th:last-child,td:last-child{padding-right:0}
+td{padding:18px 14px;border-bottom:1px solid var(--hair-soft);vertical-align:top;color:var(--ink);letter-spacing:0}
+tbody tr:last-child td{border-bottom:none}
+tbody tr{transition:background .35s var(--ease)}
+tbody tr:hover{background:rgba(63,111,146,.035)}
+td.num{
+  font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink);font-weight:500;
+  letter-spacing:.01em;
+}
+td strong{font-weight:600;color:var(--ink);letter-spacing:0}
+td.cue{color:var(--ink-3);font-size:13px;line-height:1.7;min-width:170px}
+.pill{
+  display:inline-block;margin-left:9px;padding:2px 9px;border-radius:999px;
+  font-size:10px;letter-spacing:.1em;color:var(--ink-3);
+  border:1px solid var(--hair-soft);background:rgba(18,24,30,.035);vertical-align:1px;
+}
+.star{color:var(--steel);font-size:11px;margin-left:3px}
+
+/* 训练量 */
+.volbar{height:3px;background:rgba(18,24,30,.08);border-radius:3px;overflow:hidden;margin-top:8px}
+.volbar i{display:block;height:100%;border-radius:3px;
+  background:linear-gradient(90deg,rgba(63,111,146,.45),rgba(26,52,74,.95))}
+
+/* 提示列表 */
+ul.tips{margin:14px 0 0;padding:0;list-style:none}
+ul.tips li{
+  position:relative;padding:13px 0 13px 26px;font-size:14px;line-height:1.78;
+  color:var(--ink-2);border-bottom:1px solid var(--hair-soft);letter-spacing:0;
+}
+ul.tips li:last-child{border-bottom:none}
+ul.tips li::before{
+  content:"";position:absolute;left:2px;top:23px;width:10px;height:1px;background:rgba(63,111,146,.55);
+}
+ul.tips strong{color:var(--ink);font-weight:600}
+.note{
+  margin:26px 0 0;padding-top:22px;border-top:1px solid var(--hair-soft);
+  font-size:13px;line-height:1.8;color:var(--ink-3);letter-spacing:.005em;
+}
+
+/* 结果操作条 */
+#result > section.no-print:first-child button{padding:12px 26px;font-size:13.5px}
+
+/* ---------- 页脚 ---------- */
+.foot{
+  margin-top:90px;padding-top:34px;border-top:1px solid var(--hair-soft);
+  display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-4);font-weight:600;
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width:900px){
+  .wrap{padding:0 22px 90px}
+  .masthead{padding-top:64px}
+  .masthead h1{font-size:clamp(34px,10vw,54px);margin-top:40px}
+  .lede{font-size:15px}
+  .meta-strip{grid-template-columns:repeat(2,1fr);margin-top:48px;border-top:1px solid var(--hair-soft)}
+  .meta-strip div{border-left:0;padding:16px 0;border-top:1px solid var(--hair-soft)}
+  .meta-strip div:nth-child(-n+2){border-top:0}
+  .panel{padding:30px 22px 26px;border-radius:22px}
+  .card{padding:28px 22px 24px;border-radius:22px}
+  .daycard{padding:28px 22px 24px;border-radius:22px}
+  .daycard::after{font-size:64px;right:20px;top:14px}
+  .hero{grid-template-columns:repeat(2,1fr);border-top:0}
+  .stat{border-left:0;border-top:1px solid var(--hair-soft);padding:18px 0 4px}
+  .stat:nth-child(odd){padding-right:16px}
+  .sched{grid-template-columns:repeat(4,1fr)}
+  .dayhead .m{text-align:left}
+  th:nth-child(5),td:nth-child(5){display:none}
+  td.cue{display:none}
+  .actions button{flex:1}
+}
+
+/* ---------- 打印 ---------- */
+@media print{
+  @page{margin:14mm}
+  body{background:#fff;color:#111;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .ambient,.grain,.vignette,.no-print{display:none!important}
+  .wrap{max-width:none;padding:0}
+  .panel,.card,.daycard{
+    background:#fff!important;border:1px solid #e2e2e2!important;outline:none!important;
+    box-shadow:none!important;
+    -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+    border-radius:10px;padding:16px 18px;margin-top:10px;
+    break-inside:avoid;page-break-inside:avoid;
+  }
+  .panel::before,.card::before,.daycard::after{display:none!important}
+  .masthead{padding-top:0}
+  .masthead h1,.dayhead .t,h2,.stat .v,td strong,td.num{color:#111!important;background:none!important;-webkit-text-fill-color:#111!important}
+  .masthead h1 em,.dayhead .d,.stat.accent .v,.star,.meta-strip b{color:#2f5f3f!important;-webkit-text-fill-color:#2f5f3f!important;background:none!important}
+  .lede,.hint,.stat .k,td.cue,.note,.warm,ul.tips li,.dayhead .m,.meta-strip span{color:#555!important}
+  .meta-strip,.stat,.sched .d,td,th,ul.tips li{border-color:#e2e2e2!important;background:#fff!important}
+  .sched .d.on{background:#f3f8ea!important;border-color:#9cc45c!important}
+  .sched .d.on .s,.sched .d.on .w{color:#2f5600!important}
+  .volbar{background:#eee!important}
+  .volbar i{background:#7aa032!important}
+  .pill{border-color:#ddd!important;color:#666!important;background:#fff!important}
+  .warm{border-left:2px solid #9cc45c!important}
+  tbody tr:hover{background:none!important}
+}
+
+/* ================= 平板 / 触屏优化 ================= */
+button,label,.seg span,.chk span{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+@media (hover:none),(pointer:coarse){
+  input[type=number],select{font-size:16.5px}   /* ≥16px，iOS 聚焦才不会放大页面 */
+  .chk span{padding:12px 20px;min-height:46px;display:flex;align-items:center}
+  .seg span{min-height:46px;display:flex;align-items:center;justify-content:center}
+  button{min-height:52px}
+  tbody tr:hover{background:none}
+}
+.wrap{padding-left:max(32px,env(safe-area-inset-left));
+      padding-right:max(32px,env(safe-area-inset-right))}
+body{padding-bottom:env(safe-area-inset-bottom)}
+
+@media (min-width:768px){
+  body{font-size:16.5px}
+  .lede{font-size:17px;max-width:600px}
+  .panel{padding:48px 48px 44px}
+  .card{padding:42px 44px 38px}
+  .daycard{padding:40px 44px 34px}
+  td{font-size:15px;padding:20px 14px}
+  td.cue{font-size:13.5px;min-width:190px}
+  .dayhead .t{font-size:25px}
+  .actions button{padding:16px 40px;font-size:15px}
+  .stat .v{font-size:clamp(24px,2.8vw,34px)}
+}
+
+/* 竖屏 / 窄屏：表格改成列表卡片，不再横向挤压 */
+@media (max-width:980px){
+  .tablewrap{overflow:visible}
+  table,tbody,tr,td{display:block;width:100%}
+  thead{display:none}
+  tr{padding:16px 0;border-bottom:1px solid var(--hair-soft)}
+  tr:last-child{border-bottom:0}
+  td{border:0;padding:0;display:block}
+  td:first-child{display:none}
+  td:nth-child(2){font-size:16.5px;line-height:1.5;margin-bottom:7px}
+  td:nth-child(3){display:inline-block;font-size:14.5px;font-weight:600;color:var(--ink);margin-right:16px;width:auto}
+  td:nth-child(4){display:inline-block;font-size:14px;color:var(--ink-3);width:auto}
+  td:nth-child(4)::before{content:"休息 "}
+  td:nth-child(5){display:block!important;margin-top:7px;font-size:13.5px;color:var(--ink-3)}
+  tbody tr:hover{background:none}
+  .sched{grid-template-columns:repeat(4,1fr);gap:9px}
+  .sched .d{padding:20px 6px 18px}
+  .daycard::after{font-size:72px}
+}
+
+</style>
+</head>
+<body>
+
+<div class="ambient"><span class="a1"></span><span class="a2"></span><span class="a3"></span></div>
+<div class="grain"></div>
+<div class="vignette"></div>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="topline">
+      <span class="eyebrow">Pro Split Engine</span>
+      <span class="eyebrow">Local · No Cloud</span>
+    </div>
+    <h1>训练计划<br><em>生成器</em></h1>
+    <p class="lede">
+      输入身体数据与目标，生成 <b>1–4 练 / 周</b> 的分化训练方案。<br>
+      动作、组次、休息、要点一次到位——全部在你的浏览器里运行。
+    </p>
+    <div class="meta-strip">
+      <div><b>01</b><span>身体评估</span></div>
+      <div><b>02</b><span>分化编排</span></div>
+      <div><b>03</b><span>动作与组次</span></div>
+      <div><b>04</b><span>进阶规则</span></div>
+    </div>
+  </header>
+
+  <!-- 表单 -->
+  <section class="panel no-print" id="formCard">
+    <div class="panel-head">
+      <span class="idx">01</span>
+      <h2>基本资料</h2>
+      <p class="hint">填得越准，方案越贴合。所有数据只保存在你自己的浏览器里，不会上传。</p>
+    </div>
+
+    <div class="grid">
+      <div class="field">
+        <span class="flabel">性别</span>
+        <div class="seg" id="sexSeg">
+          <label><input type="radio" name="sex" value="male" checked><span>男</span></label>
+          <label><input type="radio" name="sex" value="female"><span>女</span></label>
+        </div>
+      </div>
+      <div class="field">
+        <span class="flabel">年龄 · 岁</span>
+        <input type="number" id="age" value="28" min="14" max="80">
+      </div>
+      <div class="field">
+        <span class="flabel">身高 · cm</span>
+        <input type="number" id="height" value="175" min="130" max="230">
+      </div>
+      <div class="field">
+        <span class="flabel">体重 · kg</span>
+        <input type="number" id="weight" value="72" min="30" max="200" step="0.1">
+      </div>
+    </div>
+
+    <div class="grid two">
+      <div class="field">
+        <span class="flabel">训练经验</span>
+        <select id="level">
+          <option value="1">新手 · 没练过 / 不到 6 个月</option>
+          <option value="2" selected>有基础 · 6 个月 ~ 2 年</option>
+          <option value="3">进阶 · 2 年以上</option>
+        </select>
+      </div>
+      <div class="field">
+        <span class="flabel">主要目标</span>
+        <select id="goal">
+          <option value="cut">减脂 · 降体脂、保肌肉</option>
+          <option value="build" selected>增肌 · 涨肌肉、涨力量</option>
+          <option value="shape">塑形 · 体态与线条</option>
+          <option value="fit">体能 · 健康</option>
+        </select>
+      </div>
+      <div class="field">
+        <span class="flabel">最想改善的部位</span>
+        <select id="focus">
+          <option value="none" selected>整体均衡 · 无特别偏好</option>
+          <option value="chest">胸</option>
+          <option value="back">背</option>
+          <option value="legs">腿 / 臀</option>
+          <option value="shoulder">肩</option>
+          <option value="arm">手臂</option>
+          <option value="core">腰腹核心</option>
+          <option value="posture">体态 · 圆肩 / 驼背 / 骨盆前倾</option>
+        </select>
+      </div>
+      <div class="field">
+        <span class="flabel">器械条件</span>
+        <select id="equip">
+          <option value="gym" selected>商业健身房 · 器械齐全</option>
+          <option value="db">家用哑铃 + 训练凳</option>
+          <option value="bw">自重为主 · 无器械</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid two">
+      <div class="field" style="grid-column:1/-1">
+        <span class="flabel">每周能训练几天</span>
+        <div class="seg" id="freqSeg">
+          <label><input type="radio" name="freq" value="1"><span>1 练</span></label>
+          <label><input type="radio" name="freq" value="2"><span>2 练</span></label>
+          <label><input type="radio" name="freq" value="3" checked><span>3 练</span></label>
+          <label><input type="radio" name="freq" value="4"><span>4 练</span></label>
+        </div>
+      </div>
+      <div class="field" style="grid-column:1/-1">
+        <span class="flabel">伤病 / 限制 · 多选，会过滤掉不适合的动作</span>
+        <div class="chk" id="injChk">
+          <label><input type="checkbox" value="knee"><span>膝关节</span></label>
+          <label><input type="checkbox" value="lowback"><span>下背 / 腰</span></label>
+          <label><input type="checkbox" value="shoulder"><span>肩关节</span></label>
+          <label><input type="checkbox" value="none" checked><span>没有</span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-main" id="genBtn">生成训练计划</button>
+      <button class="btn-ghost" id="resetBtn">新客户</button>
+    </div>
+  </section>
+
+  <!-- 结果 -->
+  <main id="result" hidden></main>
+
+  <footer class="foot">
+    <span>Pro Split Engine</span>
+    <span>全部运算在本地完成</span>
+  </footer>
+
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   动作库
+   eq: 最低器械要求  bw=自重 / db=哑铃 / gym=固定器械或杠铃
+   lv: 最低经验要求  1=新手 2=有基础 3=进阶
+   t : c=复合动作 i=孤立动作 core=核心 calf=小腿
+   av: 需要规避的伤病
+   ============================================================ */
+const DB = [
+  /* ---------- 胸 · 水平推 ---------- */
+  {n:"器械推胸",      p:"胸", pat:"push_h", eq:"gym", lv:1, t:"c", cue:"座椅调到手柄与胸线齐平，肩胛后收下沉，推到手臂将直未直"},
+  {n:"哑铃卧推",      p:"胸", pat:"push_h", eq:"db",  lv:1, t:"c", cue:"哑铃落在胸两侧，小臂垂直地面，推起时不要耸肩"},
+  {n:"上斜哑铃卧推",  p:"胸", pat:"push_h", eq:"db",  lv:1, t:"c", cue:"凳面 30°，练上胸；手肘约 45° 夹角，别摊成 90°"},
+  {n:"杠铃平板卧推",  p:"胸", pat:"push_h", eq:"gym", lv:2, t:"c", cue:"肩胛夹紧贴凳，杠铃触胸中下位，脚踩实地面借力"},
+  {n:"俯卧撑",        p:"胸", pat:"push_h", eq:"bw",  lv:1, t:"c", cue:"身体一条直线，胸口贴近地面，全程收腹夹臀"},
+  {n:"跪姿俯卧撑",    p:"胸", pat:"push_h", eq:"bw",  lv:1, t:"c", cue:"膝盖着地降低难度，其余要点同上"},
+  {n:"双杠臂屈伸",    p:"胸", pat:"push_h", eq:"gym", lv:3, t:"c", av:["shoulder"], cue:"身体前倾练下胸，下放到肩略低于肘即可"},
+
+  /* ---------- 胸 · 孤立 ---------- */
+  {n:"绳索夹胸",      p:"胸", pat:"chest_iso", eq:"gym", lv:1, t:"i", cue:"手肘微屈固定不变，靠夹的角度发力，顶峰停 1 秒"},
+  {n:"哑铃飞鸟",      p:"胸", pat:"chest_iso", eq:"db",  lv:1, t:"i", cue:"像抱大树，下放到胸部有拉伸感即可，别过深伤肩"},
+  {n:"器械夹胸",      p:"胸", pat:"chest_iso", eq:"gym", lv:1, t:"i", cue:"固定轨迹最安全，专注挤压感而不是重量"},
+
+  /* ---------- 背 · 垂直拉 ---------- */
+  {n:"高位下拉",      p:"背", pat:"pull_v", eq:"gym", lv:1, t:"c", cue:"先沉肩再拉，把杆拉到锁骨位置，别用身体后仰甩"},
+  {n:"辅助引体向上",  p:"背", pat:"pull_v", eq:"gym", lv:2, t:"c", cue:"用辅助机或弹力带，下放 3 秒控制，比借力多做几个有效"},
+  {n:"引体向上",      p:"背", pat:"pull_v", eq:"gym", lv:3, t:"c", cue:"肩胛先下沉再拉，胸口找杆，不要甩腿"},
+  {n:"直臂下压",      p:"背", pat:"pull_v", eq:"gym", lv:1, t:"i", cue:"手臂近乎伸直，用背阔肌把杆压向大腿，感受腋下发紧"},
+  {n:"哑铃仰卧上拉",  p:"背", pat:"pull_v", eq:"db",  lv:1, t:"i", cue:"仰卧凳上，哑铃从头后划到胸口上方，练背阔肌" },
+  {n:"超人式",        p:"背", pat:"pull_v", eq:"bw",  lv:1, t:"i", cue:"俯卧，同时抬起手臂与双腿，收紧背部，顶峰停 2 秒"},
+  {n:"哑铃俯身直臂后拉", p:"背", pat:"pull_v", eq:"db", lv:1, t:"i", cue:"俯身，手臂近乎伸直向后上方拉，练背阔肌下缘"},
+
+  /* ---------- 背 · 水平拉 ---------- */
+  {n:"坐姿划船",      p:"背", pat:"pull_h", eq:"gym", lv:1, t:"c", cue:"胸口挺起，把肘拉到身体两侧后方，肩胛先收再拉"},
+  {n:"器械划船",      p:"背", pat:"pull_h", eq:"gym", lv:1, t:"c", cue:"胸口顶住垫子，专注中背收缩，别靠腰后仰"},
+  {n:"单臂哑铃划船",  p:"背", pat:"pull_h", eq:"db",  lv:1, t:"c", cue:"一手一膝撑凳，肘往髋部方向划，别转躯干"},
+  {n:"杠铃俯身划船",  p:"背", pat:"pull_h", eq:"gym", lv:2, t:"c", av:["lowback"], cue:"髋铰链俯身约 45°，杠铃拉到小腹，全程腰背打直"},
+  {n:"反向划船",      p:"背", pat:"pull_h", eq:"bw",  lv:1, t:"c", cue:"身体在低杠/桌下保持一条直线，胸口拉向边缘，脚跟着地可降难度"},
+  {n:"俯卧 Y-T-W",    p:"背", pat:"pull_h", eq:"bw",  lv:1, t:"i", cue:"俯卧，手臂摆成 Y、T、W 三种形状各抬 10 次，改善圆肩驼背"},
+
+  /* ---------- 肩 ---------- */
+  {n:"器械肩推",      p:"肩", pat:"push_v", eq:"gym", lv:1, t:"c", av:["shoulder"], cue:"座椅靠背调直，推到手臂微屈，别锁死肘"},
+  {n:"坐姿哑铃推举",  p:"肩", pat:"push_v", eq:"db",  lv:1, t:"c", av:["shoulder"], cue:"哑铃从耳侧向上推，核心收紧别塌腰"},
+  {n:"杠铃站姿推举",  p:"肩", pat:"push_v", eq:"gym", lv:2, t:"c", av:["shoulder","lowback"], cue:"夹臀收腹，杠铃过下巴后头微后仰再推直"},
+  {n:"阿诺德推举",    p:"肩", pat:"push_v", eq:"db",  lv:2, t:"c", av:["shoulder"], cue:"掌心从朝内旋转到朝前，适合练前束"},
+  {n:"派克俯卧撑",    p:"肩", pat:"push_v", eq:"bw",  lv:2, t:"c", av:["shoulder"], cue:"臀部抬高成倒 V 字，头顶朝下推起，练肩前束"},
+  {n:"哑铃侧平举",    p:"肩", pat:"shoulder_iso", eq:"db",  lv:1, t:"i", cue:"小重量，肘微屈，抬到与肩平；想象把手往两侧拨开"},
+  {n:"绳索侧平举",    p:"肩", pat:"shoulder_iso", eq:"gym", lv:1, t:"i", cue:"全程张力不断，比哑铃更容易找到中束感觉"},
+  {n:"面拉",          p:"肩", pat:"shoulder_iso", eq:"gym", lv:1, t:"i", cue:"拉向脸的高度，肘高于手，练后束+改善圆肩"},
+  {n:"俯身反向飞鸟",  p:"肩", pat:"shoulder_iso", eq:"db",  lv:1, t:"i", cue:"俯身到背接近水平，纯后束发力，别用斜方肌代偿"},
+  {n:"靠墙天使",      p:"肩", pat:"shoulder_iso", eq:"bw",  lv:1, t:"i", cue:"背与手臂贴墙，沿墙上下滑动，练后束并改善体态"},
+  {n:"直立划船",      p:"肩", pat:"shoulder_iso", eq:"gym", lv:2, t:"i", av:["shoulder"], cue:"拉到胸口高度就停，再高容易夹肩峰"},
+
+  /* ---------- 臂 ---------- */
+  {n:"绳索下压",      p:"臂", pat:"tri", eq:"gym", lv:1, t:"i", cue:"手肘固定在身侧，只动小臂，下压到底收紧"},
+  {n:"仰卧哑铃臂屈伸",p:"臂", pat:"tri", eq:"db",  lv:1, t:"i", av:["shoulder"], cue:"哑铃下放到头两侧，手肘不外张"},
+  {n:"窄距俯卧撑",    p:"臂", pat:"tri", eq:"bw",  lv:1, t:"c", cue:"手放肩宽内，手肘贴近身体，练三头"},
+  {n:"凳上臂屈伸",    p:"臂", pat:"tri", eq:"bw",  lv:1, t:"c", av:["shoulder"], cue:"背贴凳沿，下放时肘朝后，别耸肩"},
+  {n:"哑铃弯举",      p:"臂", pat:"bi",  eq:"db",  lv:1, t:"i", cue:"手肘夹紧不晃，顶峰收缩 1 秒，下放 3 秒"},
+  {n:"杠铃弯举",      p:"臂", pat:"bi",  eq:"gym", lv:1, t:"i", cue:"与肩同宽握，别用腰甩重量"},
+  {n:"锤式弯举",      p:"臂", pat:"bi",  eq:"db",  lv:1, t:"i", cue:"掌心相对，练肱肌让手臂更粗"},
+  {n:"反手反向划船",  p:"臂", pat:"bi",  eq:"bw",  lv:1, t:"i", cue:"反手握低杠，身体后倾把胸口拉起，练二头肌"},
+
+  /* ---------- 腿 · 蹲 ---------- */
+  {n:"自重深蹲",      p:"腿", pat:"squat", eq:"bw",  lv:1, t:"c", cue:"双脚肩宽，屁股往后坐，膝盖跟脚尖同向，蹲到大腿平行"},
+  {n:"高脚杯深蹲",    p:"腿", pat:"squat", eq:"db",  lv:1, t:"c", cue:"哑铃抱胸前帮助挺直上身，下蹲时膝盖主动打开"},
+  {n:"腿举",          p:"腿", pat:"squat", eq:"gym", lv:1, t:"c", av:["lowback"], cue:"下放到膝约 90°，臀部别离开垫子，不要弹起"},
+  {n:"杠铃背蹲",      p:"腿", pat:"squat", eq:"gym", lv:2, t:"c", av:["lowback"], cue:"杠铃放在斜方肌上，重心在中足，蹲起时髋膝同时伸展"},
+  {n:"靠墙静蹲",      p:"腿", pat:"squat", eq:"bw",  lv:1, t:"i", cue:"背贴墙，膝盖 90°，坚持到腿发抖"},
+
+  /* ---------- 腿 · 髋铰链 ---------- */
+  {n:"哑铃罗马尼亚硬拉", p:"腿", pat:"hinge", eq:"db",  lv:1, t:"c", av:["lowback"], cue:"膝盖微屈固定，屁股往后推，哑铃贴腿下放，感受大腿后侧拉伸"},
+  {n:"杠铃罗马尼亚硬拉", p:"腿", pat:"hinge", eq:"gym", lv:2, t:"c", av:["lowback"], cue:"杠铃贴腿，背部全程打直，拉到顶夹臀"},
+  {n:"髋推",          p:"臀", pat:"hinge", eq:"gym", lv:1, t:"c", cue:"肩胛靠凳，用臀发力把髋顶起，顶端停 1 秒"},
+  {n:"臀桥",          p:"臀", pat:"glute", eq:"bw",  lv:1, t:"i", cue:"脚跟发力顶髋，顶端夹紧臀部，别用腰代偿"},
+  {n:"哑铃臀桥",      p:"臀", pat:"hinge", eq:"db",  lv:1, t:"i", cue:"肩靠凳沿，哑铃压在髋部，脚跟发力顶髋，顶端停 1 秒"},
+  {n:"单腿罗马尼亚硬拉", p:"腿", pat:"hinge", eq:"bw", lv:1, t:"i", cue:"单腿站立，另一腿后伸，身体前倾到躯干接近水平，感受支撑腿后侧拉伸"},
+  {n:"腿弯举",        p:"腿", pat:"hinge", eq:"gym", lv:1, t:"i", cue:"练大腿后侧，下放缓慢控制，别靠惯性"},
+  {n:"壶铃摆荡",      p:"臀", pat:"hinge", eq:"gym", lv:2, t:"c", av:["lowback"], cue:"靠髋部爆发摆出，不是用手举"},
+
+  /* ---------- 腿 · 单腿 ---------- */
+  {n:"台阶上步",      p:"腿", pat:"lunge", eq:"db",  lv:1, t:"c", av:["knee"], cue:"上台阶用前腿发力，身体别过度前倾"},
+  {n:"徒手箭步蹲",    p:"腿", pat:"lunge", eq:"bw",  lv:1, t:"c", av:["knee"], cue:"前后脚分开，下蹲到两膝约 90°，垂直上下"},
+  {n:"单腿箱式坐下",  p:"腿", pat:"lunge", eq:"bw",  lv:1, t:"c", cue:"单腿站凳前，用支撑腿慢慢坐到凳上再站起，控制离心"},
+  {n:"哑铃箭步蹲",    p:"腿", pat:"lunge", eq:"db",  lv:1, t:"c", av:["knee"], cue:"下蹲时两膝都是 90°，前膝别超过脚尖太多"},
+  {n:"保加利亚分腿蹲",p:"腿", pat:"lunge", eq:"db",  lv:2, t:"c", av:["knee"], cue:"后脚搭凳，重心放在前腿，垂直上下"},
+  {n:"单腿臀桥",      p:"臀", pat:"glute", eq:"bw",  lv:1, t:"i", cue:"一条腿撑地顶髋，另一条腿伸直，左右各做"},
+
+  /* ---------- 腿 · 孤立 ---------- */
+  {n:"腿屈伸",        p:"腿", pat:"squat", eq:"gym", lv:1, t:"i", cue:"练股四头，顶端停 1 秒，下放慢"},
+  {n:"站姿提踵",      p:"腿", pat:"calf", eq:"db",  lv:1, t:"calf", cue:"脚尖踩高，下放到最低再顶到最高，慢速全程"},
+  {n:"坐姿提踵",      p:"腿", pat:"calf", eq:"gym", lv:1, t:"calf", cue:"练比目鱼肌，底部拉长再收缩"},
+  {n:"提踵走",        p:"腿", pat:"calf", eq:"bw",  lv:1, t:"calf", cue:"踮脚尖走路，走满 30 步"},
+
+  /* ---------- 核心 ---------- */
+  {n:"平板支撑",      p:"核心", pat:"core", eq:"bw",  lv:1, t:"core", cue:"肘在肩正下方，收腹夹臀，别塌腰撅臀"},
+  {n:"侧平板支撑",    p:"核心", pat:"core", eq:"bw",  lv:1, t:"core", cue:"身体一条直线，练侧腹，左右各做"},
+  {n:"死虫式",        p:"核心", pat:"core", eq:"bw",  lv:1, t:"core", cue:"腰部贴紧地面，对侧手脚缓慢伸出，练核心稳定"},
+  {n:"卷腹",          p:"核心", pat:"core", eq:"bw",  lv:1, t:"core", cue:"下背贴地，用腹部把肩胛卷离地面，别拉脖子"},
+  {n:"悬垂举腿",      p:"核心", pat:"core", eq:"gym", lv:2, t:"core", cue:"悬垂，用腹肌把膝盖卷向胸口，别摆荡"},
+
+  /* ---------- 全身 / 体能 ---------- */
+  {n:"农夫行走",      p:"全身", pat:"carry", eq:"db", lv:1, t:"c", cue:"双手提重物走 30 米，肩胛下沉，躯干不晃"}
+];
+
+/* 槽位 -> 兜底部位（找不到动作时去该部位里挑） */
+const SLOT_PART = {
+  push_h:"胸", push_v:"肩", pull_h:"背", pull_v:"背",
+  chest_iso:"胸", shoulder_iso:"肩", tri:"臂", bi:"臂",
+  squat:"腿", hinge:"腿", lunge:"腿", glute:"臀",
+  calf:"腿", core:"核心", carry:"全身"
+};
+
+/* 训练日模板 */
+const TEMPLATES = {
+  fullA:  {name:"全身 A", focus:"腿 · 胸 · 背 · 核心", slots:["squat","push_h","pull_h","core"]},
+  fullB:  {name:"全身 B", focus:"臀腿后侧 · 肩 · 背 · 核心", slots:["hinge","push_v","pull_v","core"]},
+  fullC:  {name:"全身 C", focus:"单腿 · 上胸 · 中背 · 核心", slots:["lunge","push_h","pull_h","core"]},
+  upperA: {name:"上肢 A", focus:"胸 · 背 · 肩 · 手臂", slots:["push_h","pull_h","push_v","bi"]},
+  upperB: {name:"上肢 B", focus:"上胸 · 背阔 · 肩中束 · 三头", slots:["push_h","pull_v","shoulder_iso","tri"]},
+  lowerA: {name:"下肢 A", focus:"蹲 · 髋铰链 · 单腿 · 小腿", slots:["squat","hinge","lunge","calf"]},
+  lowerB: {name:"下肢 B", focus:"髋铰链 · 蹲 · 臀 · 核心", slots:["hinge","squat","glute","core"]},
+  push:   {name:"推力日", focus:"胸 · 肩 · 三头", slots:["push_h","push_v","chest_iso","tri"]},
+  pull:   {name:"拉力日", focus:"背阔 · 中背 · 肩后束 · 二头", slots:["pull_v","pull_h","shoulder_iso","bi"]},
+  legsD:  {name:"腿臀日", focus:"蹲 · 髋铰链 · 臀 · 小腿", slots:["squat","hinge","glute","calf"]}
+};
+
+const FOCUS_PARTS = {
+  none: [], chest:["胸"], back:["背"], legs:["腿","臀"], shoulder:["肩"],
+  arm:["臂"], core:["核心"], posture:["背","核心"]
+};
+const FOCUS_LABEL = {
+  none:"整体均衡", chest:"胸", back:"背", legs:"腿 / 臀", shoulder:"肩",
+  arm:"手臂", core:"腰腹核心", posture:"体态改善"
+};
+
+const RANK = {bw:0, db:1, gym:2};
+const WEEK = ["周一","周二","周三","周四","周五","周六","周日"];
+const DAYMAP = {1:[2], 2:[1,4], 3:[0,2,4], 4:[0,1,3,4]};
+
+/* ---------------- 工具 ---------------- */
+function pickSplit(freq, lv){
+  if(freq===1) return ["fullA"];
+  if(freq===2) return lv===1 ? ["fullA","fullB"] : ["upperA","lowerA"];
+  if(freq===3) return lv===1 ? ["fullA","fullB","fullC"] : ["push","pull","legsD"];
+  return lv===3 ? ["push","pull","legsD","upperB"] : ["upperA","lowerA","upperB","lowerB"];
+}
+
+function repsFor(ex, lv, goal){
+  if(ex.t==="core"){
+    return {sets:3, reps:"30–45 秒", rest:"45 秒"};
+  }
+  if(ex.t==="calf"){
+    const s = lv===1?3:4;
+    return {sets:s, reps:"15–20 次", rest:"45–60 秒"};
+  }
+  if(ex.t==="c"){
+    if(lv===1) return {sets:3, reps:"10–12 次", rest:"90 秒"};
+    if(lv===2) return {sets:4, reps:"8–10 次", rest:"120 秒"};
+    return {sets:4, reps:"6–8 次", rest:"120–180 秒"};
+  }
+  return {sets: lv===1?3:4, reps:"12–15 次", rest:"60 秒"};
+}
+
+/* 从动作库挑一个 */
+let pickCounter = 0;
+const COMPOUND_SLOTS = ["squat","hinge","lunge","push_h","push_v","pull_h","pull_v"];
+function bad(e, inj){ return (e.av || []).some(a => inj.includes(a)); }
+function pick(slot, ctx, used){
+  const base = e => RANK[e.eq] <= RANK[ctx.equip] && e.lv <= ctx.lv && !bad(e, ctx.injuries) && !used.has(e.n);
+  /* 复合动作槽位优先给复合动作，实在没有才用孤立动作顶 */
+  const wantCompound = COMPOUND_SLOTS.includes(slot);
+  const refine = list => {
+    if(!list.length || !wantCompound) return list;
+    const c = list.filter(e => e.t === "c");
+    return c.length ? c : list;
+  };
+  let list = refine(DB.filter(e => e.pat === slot && base(e)));
+  if(!list.length){
+    const part = SLOT_PART[slot];
+    list = refine(DB.filter(e => part && e.p === part && base(e)));
+  }
+  if(!list.length) list = DB.filter(e => base(e) && e.t !== "carry");
+  if(!list.length) return null;
+  list = list.slice();
+  /* 优先复合、优先贴近本人水平的动作，再在前三名里轮换以制造变化 */
+  list.sort((a,b)=> (a.t==="c"?0:1)-(b.t==="c"?0:1) || b.lv-a.lv);
+  const top = list.slice(0, Math.min(3, list.length));
+  const ex = top[pickCounter++ % top.length];
+  used.add(ex.n);
+  return ex;
+}
+
+/* ---------------- 生成计划 ---------------- */
+function buildPlan(d){
+  const injuries = d.injuries;
+  const ctx = {equip:d.equip, lv:d.level, injuries};
+  const parts = FOCUS_PARTS[d.focus] || [];
+  pickCounter = 0;
+
+  const split = pickSplit(d.freq, d.level);
+  const days = DAYMAP[d.freq];
+  const sessions = [];
+
+  split.forEach((key, si) => {
+    const tpl = TEMPLATES[key];
+    const used = new Set();
+    const items = [];
+    tpl.slots.forEach(slot => {
+      const ex = pick(slot, ctx, used);
+      if(ex) items.push({ex});
+    });
+    sessions.push({
+      key, name:tpl.name, focus:tpl.focus,
+      weekday: WEEK[days[si]], items, boosted:false
+    });
+  });
+
+  /* 弱项优先：只在「本来就练到这个部位」的训练日做加强
+     —— 把该部位的动作提到第一个，组数 +1（最多 5 组）
+     —— 如果整个分化里都没练到该部位，才替换第一个训练日的最后一个动作 */
+  if(parts.length){
+    let anyBoost = false;
+    sessions.forEach(s => {
+      const idx = s.items.findIndex(it => parts.includes(it.ex.p));
+      if(idx >= 0){
+        const it = s.items[idx];
+        it.boost = true;
+        // 只有复合动作才提到第一个；孤立动作原地加组，避免打乱训练顺序
+        if(it.ex.t === "c" && idx > 0){
+          s.items.splice(idx, 1);
+          s.items.unshift(it);
+        }
+        s.boosted = true;
+        anyBoost = true;
+      }
+    });
+    if(!anyBoost){
+      const s = sessions[0];
+      const cand = DB.filter(e => parts.includes(e.p)
+        && RANK[e.eq] <= RANK[ctx.equip] && e.lv <= ctx.lv
+        && !bad(e, injuries) && !s.items.some(it => it.ex.n === e.n));
+      if(cand.length){
+        cand.sort((a,b)=> (a.t==="c"?0:1)-(b.t==="c"?0:1) || b.lv-a.lv);
+        s.items.pop();
+        s.items.push({ex:cand[0], boost:true});
+        s.boosted = true;
+      }
+    }
+  }
+
+  /* 组次编排 */
+  sessions.forEach(s => {
+    s.rows = s.items.map(it => {
+      const r = repsFor(it.ex, d.level, d.goal);
+      let sets = r.sets;
+      if(it.boost) sets = Math.min(sets + 1, 5);
+      return {ex:it.ex, sets, reps:r.reps, rest:r.rest, boost:!!it.boost};
+    });
+    delete s.items;
+  });
+
+  /* 训练量统计 */
+  const vol = {};
+  sessions.forEach(s => s.rows.forEach(r => {
+    const p = r.ex.p;
+    vol[p] = (vol[p]||0) + r.sets;
+  }));
+  const volList = Object.keys(vol).map(p=>({p, sets:vol[p]}))
+    .sort((a,b)=> b.sets - a.sets);
+
+  /* 身体数据 */
+  const h = d.height/100;
+  const bmi = d.weight / (h*h);
+  const bmiLabel = bmi < 18.5 ? "偏瘦" : bmi < 24 ? "正常" : bmi < 28 ? "超重" : "肥胖";
+  const bmr = Math.round(10*d.weight + 6.25*d.height - 5*d.age + (d.sex==="male"?5:-161));
+  const act = {1:1.375, 2:1.45, 3:1.55, 4:1.65}[d.freq];
+  const tdee = Math.round(bmr * act);
+  const kcal = d.goal==="cut" ? Math.max(Math.round(bmr*1.1), tdee-400)
+             : d.goal==="build" ? tdee+300 : tdee;
+  const prot = {cut:2.0, build:1.8, shape:1.8, fit:1.6}[d.goal];
+  const protG = Math.round(d.weight * prot);
+
+  /* 目标建议 */
+  const goalNote = {
+    cut: "热量赤字约 400 kcal，蛋白吃够、力量训练不能停，否则掉的是肌肉不是脂肪。",
+    build: "热量盈余约 300 kcal，涨的主要靠训练刺激 + 渐进超负荷，别靠多吃硬堆。",
+    shape: "热量维持，重点放在「练得对 + 体态纠正 + 蛋白质充足」，体重可能不变但照片会变。",
+    fit: "热量维持，优先保证训练频率和睡眠，体能提升比体重数字重要。"
+  }[d.goal];
+
+  return {
+    d, parts, sessions, volList, bmi, bmiLabel, bmr, tdee, kcal, protG, goalNote,
+    splitName: split.map(k=>TEMPLATES[k].name).join(" / "),
+    days, injuries
+  };
+}
+
+/* ---------------- 渲染 ---------------- */
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c])); }
+
+function renderPlan(p){
+  const d = p.d;
+  const lvText = {1:"新手", 2:"有基础", 3:"进阶"}[d.level];
+  const goalText = {cut:"减脂", build:"增肌", shape:"塑形", fit:"体能"}[d.goal];
+  const eqText = {gym:"商业健身房", db:"哑铃 + 训练凳", bw:"自重为主"}[d.equip];
+  const injText = p.injuries.length
+    ? p.injuries.map(x=>({knee:"膝关节", lowback:"下背/腰", shoulder:"肩关节"}[x])).join("、")
+    : "无";
+
+  /* 每周日程 */
+  let sched = "";
+  for(let i=0;i<7;i++){
+    const s = p.sessions.find(x=>x.weekday===WEEK[i]);
+    sched += `<div class="d ${s?"on":""}">
+      <div class="w">${WEEK[i]}</div>
+      <div class="s ${s?"":"rest"}">${s ? s.name : "休息"}</div>
+    </div>`;
+  }
+
+  /* 训练日卡片 */
+  let dayCards = "";
+  p.sessions.forEach(s => {
+    const min = 5 + s.rows.length * 11;
+    let rows = "";
+    s.rows.forEach((r, i) => {
+      rows += `<tr>
+        <td class="num">${i+1}</td>
+        <td><strong>${esc(r.ex.n)}</strong>${r.boost?'<span class="star"> ★</span>':''}<span class="pill">${r.ex.p}</span></td>
+        <td class="num">${r.sets} × ${r.reps}</td>
+        <td class="num" style="color:#c6d0c9;font-weight:400">${r.rest}</td>
+        <td class="cue">${esc(r.ex.cue)}</td>
+      </tr>`;
+    });
+    dayCards += `<section class="daycard">
+      <div class="dayhead">
+        <div>
+          <div class="d">${s.weekday}${s.boosted?' · 弱项优先':''}</div>
+          <div class="t">${s.name}</div>
+        </div>
+        <div class="m">${s.focus} · 约 ${min} 分钟</div>
+      </div>
+      <div class="warm">热身（5 分钟）：快走 / 椭圆机 → 肩髋动态环绕 1 组 → 第一个动作先用空杆或轻重量做 1 组热身</div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>#</th><th>动作</th><th>组 × 次数</th><th>组间休息</th><th>要点</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </section>`;
+  });
+
+  /* 训练量 */
+  let volRows = "";
+  p.volList.forEach(v=>{
+    const pct = Math.min(100, Math.round(v.sets / 20 * 100));
+    volRows += `<tr>
+      <td>${v.p}</td>
+      <td class="num">${v.sets} 组</td>
+      <td style="min-width:130px"><div class="volbar"><i style="width:${pct}%"></i></div></td>
+    </tr>`;
+  });
+
+  const focusText = FOCUS_LABEL[d.focus];
+
+  const html = `
+  <section class="no-print" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
+    <button class="btn-ghost" onclick="window.print()">打印 / 导出 PDF</button>
+    <button class="btn-ghost" onclick="copyPlan()">复制文字版</button>
+    <button class="btn-ghost" onclick="scrollTo(0,0)">修改资料</button>
+  </section>
+
+  <section class="card">
+    <h2>身体评估</h2>
+    <p class="hint">${lvText} · ${eqText} · 目标 ${goalText} · 重点 ${focusText} · 伤病限制：${injText}</p>
+    <div class="hero">
+      <div class="stat"><div class="k">BMI</div><div class="v">${p.bmi.toFixed(1)}<small>${p.bmiLabel}</small></div></div>
+      <div class="stat"><div class="k">基础代谢 BMR</div><div class="v">${p.bmr}<small>kcal</small></div></div>
+      <div class="stat"><div class="k">每日消耗 TDEE</div><div class="v">${p.tdee}<small>kcal</small></div></div>
+      <div class="stat accent"><div class="k">建议每日摄入</div><div class="v">${p.kcal}<small>kcal</small></div></div>
+      <div class="stat accent"><div class="k">蛋白质</div><div class="v">${p.protG}<small>g/天</small></div></div>
+    </div>
+    <p class="note">${p.goalNote}</p>
+  </section>
+
+  <section class="card">
+    <h2>分化方案</h2>
+    <p class="hint">每周 ${d.freq} 练 · ${p.splitName}</p>
+    <div class="sched">${sched}</div>
+    <p class="note">安排原则：训练日之间尽量隔开，让同一肌群有 48 小时以上恢复；固定星期几，让它变成不需要决定的日程。</p>
+  </section>
+
+  ${dayCards}
+
+  <section class="card">
+    <h2>每周训练量</h2>
+    <p class="hint">每个肌群每周总组数（不含热身）。10–20 组/周是多数人的有效区间。</p>
+    <div class="tablewrap"><table><tbody>${volRows}</tbody></table></div>
+    ${p.parts.length ? `<p class="note">★ 标记的是你指定优先改善的部位：已安排在训练日靠前位置，并额外 +1 组。</p>` : ""}
+  </section>
+
+  <section class="card">
+    <h2>怎么加重量（进阶规则）</h2>
+    <ul class="tips">
+      <li><strong>双重渐进：</strong>先用能标准完成的重量做满规定组数，再把次数往上加；加到次数区间上限后，加重量、次数退回下限重新开始。</li>
+      <li><strong>RIR 留余力：</strong>每组结束时还剩 1–3 次没做完就停，别每组都练到力竭，力竭只留给最后一个孤立动作。</li>
+      <li><strong>记录：</strong>每次训练把重量和次数写下来（手机备忘录也行）。没有记录就没有渐进。</li>
+      <li><strong>减载：</strong>连续练 6–8 周后，安排一周用 60% 重量、一半组数，让身体恢复，之后再冲。</li>
+      <li><strong>动作优先于重量：</strong>姿势变形的重量一律减回去，你在练肌肉不是练数字。</li>
+      <li><strong>睡眠与蛋白：</strong>每天 7 小时睡眠 + 上面算出的蛋白量，比多练一天更影响结果。</li>
+    </ul>
+    ${d.goal==="cut" || d.focus==="posture" ? `<p class="note">减脂/体态补充：每次训练后加 15–20 分钟中低强度有氧（快走、椭圆机、划船机），心率 120–140，能说话但不轻松。每周 2–3 次即可，别用有氧替代力量训练。</p>`:""}
+    ${p.parts.length && d.focus!=="posture" ? `<p class="note">弱项补充：${focusText} 每周额外加 1 次 10 分钟「弱项加练」，放在不相关的训练日或休息日，用轻重量高次数，只找泵感不追求力竭。</p>`:""}
+  </section>
+
+  <section class="card">
+    <h2>注意事项</h2>
+    <ul class="tips">
+      <li>本计划是一般性训练建议，不构成医疗意见。有明确伤病、术后、孕期或心血管问题，请先就医并遵医嘱。</li>
+      <li>训练中出现关节刺痛、麻木、头晕、胸闷，立即停止。</li>
+      <li>前两周肌肉酸痛正常（延迟性酸痛），关节痛不正常——分清这两件事。</li>
+      <li>每次训练保证 5 分钟热身，不要直接上大重量。</li>
+      <li>计划不是越复杂越好：同样的动作做 8 周并稳定加重量，胜过每周换新花样。</li>
+    </ul>
+  </section>
+  `;
+
+  const el = document.getElementById("result");
+  el.innerHTML = html;
+  el.hidden = false;
+  window.__lastPlan = p;
+  el.scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+/* 复制文字版 */
+function copyPlan(){
+  const p = window.__lastPlan;
+  if(!p) return;
+  const d = p.d;
+  let t = `【训练计划】每周 ${d.freq} 练 · ${p.splitName}\n`;
+  t += `BMI ${p.bmi.toFixed(1)}（${p.bmiLabel}）  BMR ${p.bmr}  TDEE ${p.tdee}  建议摄入 ${p.kcal} kcal  蛋白 ${p.protG}g\n\n`;
+  p.sessions.forEach(s=>{
+    t += `■ ${s.weekday} · ${s.name}（${s.focus}）\n`;
+    s.rows.forEach((r,i)=>{
+      t += `  ${i+1}. ${r.ex.n}${r.boost?" ★":""}  ${r.sets} × ${r.reps}  休息 ${r.rest}\n     ${r.ex.cue}\n`;
+    });
+    t += `\n`;
+  });
+  t += `热身 5 分钟；每组留 1–3 次余力；记录重量并渐进超负荷。\n`;
+
+  const done = ()=>{ alert("已复制，可以直接粘贴到微信发给客户。"); };
+  const fallback = ()=>{
+    const ta = document.createElement("textarea");
+    ta.value = t;
+    ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try{ ok = document.execCommand("copy"); }catch(e){ ok = false; }
+    document.body.removeChild(ta);
+    if(ok) done(); else alert("复制失败，请手动选中页面内容复制。");
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(done, fallback);
+  }else{
+    fallback();
+  }
+}
+
+/* ---------------- 读取输入 ---------------- */
+function readForm(){
+  const sex = document.querySelector('input[name=sex]:checked').value;
+  const freq = +document.querySelector('input[name=freq]:checked').value;
+  const inj = [...document.querySelectorAll('#injChk input:checked')].map(x=>x.value).filter(v=>v!=="none");
+  return {
+    sex, freq,
+    age: +document.getElementById("age").value || 28,
+    height: +document.getElementById("height").value || 175,
+    weight: +document.getElementById("weight").value || 70,
+    level: +document.getElementById("level").value,
+    goal: document.getElementById("goal").value,
+    focus: document.getElementById("focus").value,
+    equip: document.getElementById("equip").value,
+    injuries: inj
+  };
+}
+
+/* 单选框交互：伤病里选了具体项就取消"没有" */
+document.getElementById("injChk").addEventListener("change", e=>{
+  const boxes = [...document.querySelectorAll('#injChk input')];
+  const none = boxes.find(b=>b.value==="none");
+  if(e.target.value==="none" && e.target.checked){
+    boxes.forEach(b=>{ if(b!==none) b.checked=false; });
+  }else if(e.target.value!=="none" && e.target.checked){
+    none.checked=false;
+  }
+  if(!boxes.some(b=>b.checked)) none.checked = true;
+});
+
+/* 生成 */
+document.getElementById("genBtn").addEventListener("click", ()=>{
+  const d = readForm();
+  if(d.height < 130 || d.height > 230){ alert("请填写合理的身高（130–230 cm）"); return; }
+  if(d.weight < 30 || d.weight > 200){ alert("请填写合理的体重（30–200 kg）"); return; }
+  /* 平板版：不保存，避免下一位顾客看到上一位的数据 */
+  renderPlan(buildPlan(d));
+});
+
+/* 恢复默认 */
+document.getElementById("resetBtn").addEventListener("click", ()=>{
+  localStorage.removeItem("gym_plan_input");
+  location.reload();
+});
+
+/* 平板版：不自动回填上次输入，每位顾客都从默认值开始 */
+</script>
+
+<script>
+if('serviceWorker' in navigator && /^https?:/.test(location.protocol)){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('./sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
